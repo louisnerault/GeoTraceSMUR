@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GéoTrace SMUR</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="theme-color" content="#0f2847">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="GéoTrace">
+<style>
+  :root { --fond:#0f2847; --texte:#fff; --accent:#dc2626; }
+  html, body { margin:0; height:100%; background:var(--fond); color:var(--texte);
+    font-family:-apple-system, system-ui, "Segoe UI", Roboto, sans-serif; }
+  #app { position:fixed; inset:0; padding-top:env(safe-area-inset-top); background:#fff; }
+  iframe { border:0; width:100%; height:100%; display:block; }
+  #cle { display:none; position:fixed; inset:0; padding:24px 16px; box-sizing:border-box;
+    flex-direction:column; justify-content:center; gap:14px; max-width:420px; margin:auto; }
+  #cle img { width:88px; height:88px; border-radius:20px; align-self:center; }
+  #cle h1 { margin:0; font-size:22px; text-align:center; }
+  #cle p { margin:0; opacity:.8; font-size:15px; text-align:center; }
+  #cle input { font-size:17px; padding:12px; border-radius:10px; border:0; }
+  #cle button { font-size:17px; padding:12px; border-radius:10px; border:0;
+    background:var(--accent); color:#fff; font-weight:600; }
+  #hl { display:none; position:fixed; left:0; right:0; bottom:0; padding:8px 16px calc(8px + env(safe-area-inset-bottom));
+    background:#b91c1c; color:#fff; font-size:14px; text-align:center; }
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<form id="cle">
+  <img src="icon-192.png" alt="">
+  <h1>GéoTrace SMUR</h1>
+  <p>Saisissez la clé d'accès fournie par l'administrateur (une seule fois).</p>
+  <input id="saisie" type="password" autocomplete="off" placeholder="Clé d'accès" required>
+  <button type="submit">Ouvrir</button>
+</form>
+
+<div id="hl">Hors ligne — le tableau de bord s'affichera dès le retour du réseau.</div>
+
+<script>
+  /* ===== SEULE LIGNE À MODIFIER LORS DE LA MIGRATION ===== */
+  const URL_WEBAPP = 'https://script.google.com/macros/s/AKfycby0MrSkHcdAEyVXr7zFjqvhrByWkPLGtK9Lpyg5qYKTKVfGRXuhzyDOteXkCKXpNHsdCQ/exec';
+  /* ======================================================== */
+
+  const STOCKAGE = 'geotrace_cle';
+  const lire = () => { try { return localStorage.getItem(STOCKAGE) || ''; } catch (e) { return ''; } };
+  const ecrire = v => { try { localStorage.setItem(STOCKAGE, v); } catch (e) {} };
+
+  // Clé transmise dans le lien d'installation : .../#cle=XXXX
+  const m = location.hash.match(/cle=([^&]+)/);
+  if (m) { ecrire(decodeURIComponent(m[1])); history.replaceState(null, '', location.pathname); }
+
+  function ouvrir(cle) {
+    document.getElementById('cle').style.display = 'none';
+    const f = document.createElement('iframe');
+    f.src = URL_WEBAPP + '?cle=' + encodeURIComponent(cle);
+    f.allow = 'geolocation';
+    document.getElementById('app').replaceChildren(f);
+  }
+
+  const cle = lire();
+  if (cle) ouvrir(cle);
+  else {
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('cle').style.display = 'flex';
+  }
+
+  document.getElementById('cle').addEventListener('submit', e => {
+    e.preventDefault();
+    const v = document.getElementById('saisie').value.trim();
+    if (!v) return;
+    ecrire(v);
+    document.getElementById('app').style.display = 'block';
+    ouvrir(v);
+  });
+
+  const hl = document.getElementById('hl');
+  const majReseau = () => hl.style.display = navigator.onLine ? 'none' : 'block';
+  addEventListener('online', () => { majReseau(); const c = lire(); if (c) ouvrir(c); });
+  addEventListener('offline', majReseau);
+  majReseau();
+
+  // Relance au retour dans l'appli après plus de 10 min en arrière-plan
+  let cache = 0;
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) cache = Date.now();
+    else if (cache && Date.now() - cache > 10 * 60 * 1000) { const c = lire(); if (c) ouvrir(c); }
+  });
+
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
