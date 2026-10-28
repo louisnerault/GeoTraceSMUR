@@ -8,13 +8,13 @@ import { getMessaging, getToken, isSupported } from 'https://www.gstatic.com/fir
 
 /* ===== RÉGLAGES FIREBASE — à remplir une fois (et à refaire lors de la migration) ===== */
 const FIREBASE = {
-  apiKey: 'A_REMPLIR',
+  apiKey: 'AIzaSyCADQPJyEKmi5iM9r1k8WvB5RU5WBAjdjw',
   authDomain: 'geotracesmur.firebaseapp.com',
   projectId: 'geotracesmur',
-  messagingSenderId: 'A_REMPLIR',
-  appId: 'A_REMPLIR'
+  messagingSenderId: '760085842177',
+  appId: '1:760085842177:web:c65e7fc15e171a4f547300'
 };
-const CLE_VAPID = 'A_REMPLIR';
+const CLE_VAPID = 'BMokj393dDO5efjxgLF0B0HBO-056Nmy-Dx0PstC5jD7d0oDVTyRs1LOqKzu1gdauZsbJU7EweziV9HG0vGPGOk';
 /* ======================================================================================= */
 
 const STOCK_JETON = 'geotrace_push_jeton';
