@@ -1,3 +1,4 @@
+
 // Notifications push de l'appli GéoTrace SMUR (Firebase Cloud Messaging).
 // Chargé par index.html, juste avant </body> :  <script type="module" src="push.js"></script>
 //  - bandeau « Recevoir les alertes sur cet appareil » tant que les notifications ne sont pas activées ;
@@ -15,7 +16,7 @@ const FIREBASE = {
   appId: '1:760085842177:web:c65e7fc15e171a4f547300'
 };
 const CLE_VAPID = 'BMokj393dDO5efjxgLF0B0HBO-056Nmy-Dx0PstC5jD7d0oDVTyRs1LOqKzu1gdauZsbJU7EweziV9HG0vGPGOk';
-/* ======================================================================================= */
+/*==========================================================================================*/
 
 const STOCK_JETON = 'geotrace_push_jeton';
 const STOCK_INSCRIT = 'geotrace_push_inscrit';   // dernière inscription réussie (ms)
@@ -113,12 +114,16 @@ function appareil() {
   return type + (installee ? ' (appli)' : ' (navigateur)') + ' - ' + new Date().toLocaleDateString('fr-FR');
 }
 
-async function appelWebapp(corps) {
+async function appelWebapp(corps, essais = 3) {
   // text/plain (par défaut) : pas de requête préalable CORS, accepté par Apps Script
-  const r = await fetch(urlWebapp(), { method: 'POST', body: JSON.stringify(corps) });
-  const rep = await r.json();
-  if (!rep.ok) throw new Error(rep.error || 'refus du serveur');
-  return rep;
+  for (let essai = 1; ; essai++) {
+    const r = await fetch(urlWebapp(), { method: 'POST', body: JSON.stringify(corps) });
+    const rep = await r.json();
+    if (rep.ok) return rep;
+    // serveur momentanément occupé : nouvel essai après quelques secondes
+    if (!/verrou|occup/i.test(rep.error || '') || essai >= essais) throw new Error(rep.error || 'refus du serveur');
+    await new Promise(fin => setTimeout(fin, 4000 * essai));
+  }
 }
 
 async function inscrire(jeton) {
