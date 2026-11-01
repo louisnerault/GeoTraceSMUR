@@ -8,7 +8,7 @@ self.addEventListener('install', e => {
 });
 
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(k => Promise.all(k.filter(n => n !== VERSION).map(n => caches.delete(n)))));
+  e.waitUntil(caches.keys().then(k => Promise.all(k.filter(n => n.startsWith('geotrace-') && n !== VERSION).map(n => caches.delete(n)))));
   self.clients.claim();
 });
 
