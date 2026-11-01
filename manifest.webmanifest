@@ -1,5 +1,6 @@
 {
   "name": "GéoTrace SMUR",
+  "id": "geotrace-smur-app",
   "short_name": "GéoTrace",
   "description": "Suivi du matériel SMUR",
   "lang": "fr",
